@@ -1,4 +1,4 @@
-package pageobject;
+package pageObject;
 
 import org.junit.jupiter.api.Assertions;
 import org.openqa.selenium.By;
