@@ -1,3 +1,8 @@
+import component.DropDownMenuComponent;
+import component.HeaderComponentAuthArea;
+import component.HeaderComponentUnauthArea;
+import component.PersonalInfoForm;
+import component.modal.LoginModal;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -5,16 +10,12 @@ import org.junit.jupiter.api.*;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import pages.LoginPage;
-import pages.MainAuthAreaPage;
-import pages.PersonalInfoPage;
+import pages.MainBasePage;
 
 public class MainTest {
 
     private WebDriver driver;
     private org.apache.logging.log4j.Logger logger = LogManager.getLogger(Logger.class);
-
-    private static final String URL = "https://otus.ru";
 
     @BeforeAll
     public static void initDriver() {
@@ -30,31 +31,51 @@ public class MainTest {
 
     @AfterEach
     public void close() {
-        if (driver != null)
+        if (driver != null) {
+            driver.close();
             driver.quit();
+        }
     }
 
     @Test
     public void otusTest() {
-        driver.get(URL);
+
+        MainBasePage mainPage = new MainBasePage(driver);
+        HeaderComponentUnauthArea headerComponent = new HeaderComponentUnauthArea(driver);
+        LoginModal loginModal = new LoginModal(driver);
+        HeaderComponentAuthArea headerComponentAuthArea = new HeaderComponentAuthArea(driver);
+        DropDownMenuComponent dropDownMenuComponent = new DropDownMenuComponent(driver);
+        PersonalInfoForm personalInfoForm = new PersonalInfoForm(driver);
+
+        mainPage.open();
         logger.info("Открыли https://otus.ru");
-        LoginPage loginPage = new LoginPage(driver);
-        MainAuthAreaPage mainAuthAreaPage = new MainAuthAreaPage(driver);
-        PersonalInfoPage personalInfoPage = new PersonalInfoPage(driver);
-        loginPage.auth();
+        loginModal.modalShouldNotBeVisible();
+
+        headerComponent.clickSignInButton();
+        loginModal.modalShouldBeVisible();
+        loginModal.fillAuthForm();
         logger.info("Авторизовались на сайте");
-        mainAuthAreaPage.goToProfilePage();
+
+        headerComponentAuthArea.moveToUserItem();
+        dropDownMenuComponent.clickUserItem();
         logger.info("Вошли в личный кабинет");
-        personalInfoPage.fillPersonalInfo();
-        logger.info("В разделе \"О себе\" заполнили все поля \"Личные данные\" и добавить не менее двух контактов и нажали сохранить");
+
+        personalInfoForm.fillPersonalInfo();
+        logger.info("В разделе \"О себе\" заполнили все поля \"Личные данные\" и добавили не менее двух контактов и нажали сохранить");
+
         driver.manage().deleteAllCookies();
-        driver.get(URL);
+        mainPage.open();
         logger.info("Открыли https://otus.ru в \"чистом браузере\"");
-        loginPage.auth();
+
+        headerComponent.clickSignInButton();
+        loginModal.fillAuthForm();
         logger.info("Авторизовались на сайте");
-        mainAuthAreaPage.goToProfilePage();
+
+        headerComponentAuthArea.moveToUserItem();
+        dropDownMenuComponent.clickUserItem();
         logger.info("Вошли в личный кабинет");
-        personalInfoPage.checkPersonalInfo();
+
+        personalInfoForm.checkPersonalInfo();
         logger.info("Проверили, что в разделе \"О себе\" отображаются указанные ранее данные");
     }
 }
